@@ -5,6 +5,7 @@ class Auth extends CI_Controller
     {
         parent::__construct();
         $this->load->database();
+        $this->load->model('auth_model');
         ini_set('display_errors', 1);
         ini_set('display_startup_errors', 1);
         error_reporting(E_ALL);
@@ -23,43 +24,32 @@ class Auth extends CI_Controller
     public function login()
 
     {
-        if (!empty($_GET['login']) && (!empty($_GET['login']))) {
+        if (!empty($_GET['login']) && !empty($_GET['pass'])) {
             $login = $_GET['login'];
-        } else {
-            header('location: /auth');
-            exit();
-        }
-
-        if (!empty($_GET['pass']) && (!empty($_GET['pass']))) {
             $pass = $_GET['pass'];
         } else {
             header('location: /auth');
             exit();
         }
 
-        $this->db->select('*')->where('login', $login);
-        $query = $this->db->get('users');
-        $user = $query->row_array();
+        $user = $this->auth_model->getUser($login);
 
         if(!$user) {
             header('location: /auth');
             exit();
         }
 
-        if (isset($user['pass']) && $user['pass'] != '') {
-            $pass = password_verify($pass, $user['pass']);
-        } else {
-            header('location: /auth/logout');
-            exit();
-        }
+        $pass = password_verify($pass, $user['pass']);
 
         if ($pass) {
             $_SESSION['auth'] = 'ok';
             $_SESSION['id'] = $user['id'];
-            header('location: /my_tasks/create_task');
+            header('location: /my_tasks/createShowTask');
+            exit();
+        } else {
+            header('location: /auth');
             exit();
         }
-
     }
 
     public function singup()
@@ -68,6 +58,9 @@ class Auth extends CI_Controller
         if (!empty($_GET['pass']) && (!empty($_GET['pass2']))){
         $pass = $_GET['pass'];
         $pass2 = $_GET['pass2'];
+        } else {
+            header('location: /auth');
+            exit();
         }
 
         if ($pass != $pass2) {
@@ -75,7 +68,7 @@ class Auth extends CI_Controller
             exit();
         }
 
-        if (!empty($_GET['login']) && (!empty($_GET['pass']))) {
+        if (!empty($_GET['login']) && !empty($_GET['pass'])) {
             $login = $_GET['login'];
             $pass = $_GET['pass'];
         } else {
@@ -83,25 +76,17 @@ class Auth extends CI_Controller
             exit();
         }
 
-        $pass = password_hash($pass, PASSWORD_DEFAULT);
-
-        $this->db->select('*')->where('login', $login);
-        $query = $this->db->get('users');
-        $user = $query->row_array();
-
-        $data = [
-            'login' => $login,
-            'pass' => $pass
-        ];
+        $user = $this->auth_model->getUser($login);
 
         if($user) {
             echo '<a href="/auth">Такой пользователь уже есть</a>';
             exit();
         } else {
-            $this->db->insert('users', $data);
+            $pass = password_hash($pass, PASSWORD_DEFAULT);
+
             $_SESSION['auth'] = 'ok';
-            $_SESSION['id'] = $this->db->insert_id();
-            header('location: /my_tasks/create_task');
+            $_SESSION['id'] = $this->auth_model->insUser($login, $pass);
+            header('location: /my_tasks/createShowTask');
             exit();
         }
     }

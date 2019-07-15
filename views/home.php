@@ -1,12 +1,4 @@
 <?
-//session_name('crud');
-//session_start();
-
-
-echo '<pre>';
-print_r($_SESSION);
-echo '</pre>';
-
 
 if(!isset($_SESSION['auth']) or $_SESSION['auth'] != 'ok') { ?>
     <div class="signin">
@@ -28,9 +20,6 @@ if(!isset($_SESSION['auth']) or $_SESSION['auth'] != 'ok') { ?>
 
 
 elseif (isset($_SESSION['auth']) && $_SESSION['auth'] == 'ok' ) { ?>
-<!--    <div><a href="files/getFile">Save pictures</a></div><br>-->
     <div><a href="auth/logout">Logout</a></div><br>
-<!--    <div><a href="files/showFile">My pictures</a></div><br>-->
+    <div><a href="/my_tasks/createShowTask">My task</a></div><br>
 <? } ?>
-
-
